@@ -1,0 +1,145 @@
+---
+title: "Potatoes Cold Climate Adaptation"
+author: "Sina Mokhtar"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(car)
+library(erikmisc)
+library(MASS)
+```
+
+
+
+## Read Potato Data
+
+```{r}
+potato.file=read.table("rawData/potato.txt",header=TRUE)
+```
+
+## Clean Data
+```{r}
+potato = potato.file %>%
+    dplyr::mutate(regime = factor(regime,label=c("R","C")),
+                  variety = factor(variety,label=c("s1","s2")),
+                  temp = factor(temp, label=c("-4","-8")),
+                  id = 1:n())
+attach(potato)
+head(potato)
+```
+
+```{r}
+par(mfrow=c(1,3))
+boxplot(leak ~ variety,
+data = potato)
+boxplot(leak ~ regime,
+data = potato)
+boxplot(leak ~ temp,
+data = potato)
+```
+
+
+```{r}
+boxplot(leak ~ variety:regime:temp,
+data = potato)
+```
+
+```{r}
+interaction.plot(regime, variety, leak, type="b")
+interaction.plot(temp, variety, leak, type="b")
+interaction.plot(temp, regime, leak, type="b")
+```
+
+
+
+## Fit the model
+
+```{r}
+potato = potato %>%
+    dplyr::mutate(leak_positive = leak + 2) 
+attach(potato)
+myfit<-lm(leak_positive~variety*regime*temp,
+contrasts = c(variety=contr.sum, regime=contr.sum,temp=contr.sum))
+e_plot_lm_diagostics(myfit)
+boxcox = boxcox(myfit, lambda = seq(-3, 3, length = 10))
+```
+
+```{r}
+# find optimize lambda
+
+optlambda = boxcox$x[which.max(boxcox$y)]
+optlambda
+potato = potato %>%
+    dplyr::mutate(leak_trans = leak_positive^optlambda)
+attach(potato)
+```
+```{r}
+
+myfit_trans<-lm(leak_trans~variety*regime*temp,
+contrasts = c(variety=contr.sum, regime=contr.sum,temp=contr.sum))
+e_plot_lm_diagostics(myfit_trans)
+```
+
+
+
+```{r}
+#outlier test
+outlierTest(myfit_trans)
+```
+observation 25 has a standardized residual (rstudent) of -3.152623, and the Bonferroni p-value for observation 25 is 0.18259, which is greater than the conventional threshold of 0.05. This suggests that observation 25 is not statistically significant after correcting for multiple testing. Overall, observation 25 may be a potential outlier or influential observation but we keep it in model. 
+
+
+```{r}
+# violation of constant variance observed, not serious
+leveneTest(leak_trans~variety*temp*regime, data=potato)
+```
+
+Since this p-value is greater than the typical significance level of 0.05, we fail to reject the null hypothesis of equal variances across all groups. We can conclude that there is not enough evidence to suggest that the variances of these three groups are different.
+
+```{r}
+# shapiro test residuals normality
+shapiro.test(myfit_trans$residuals)
+```
+Since the p-value is greater than the significance level (0.05), we fail to reject the null hypothesis that the residuals is normally distributed. Therefore, we can conclude that the residuals is normally distributed.
+
+
+```{r}
+Anova(myfit_trans, type=3)
+```
+
+The results suggest that all predictors except variety:temp:regime are significant at the conventional alpha level of 0.05. Specifically, the intercept, variety, regime, temp, and their two-way interactions (variety:regime, variety:temp, and regime:temp) have significant effects on leak_trans. However, the three-way interaction variety:temp:regime is not significant. therefore we reduce the model and remove three way interaction.
+
+```{r}
+fit_reduced = update(myfit_trans, . ~ . -variety:regime:temp)
+Anova(fit_reduced, type=3)
+```
+
+The interaction term variety:temp in the ANOVA table has a p-value of 0.72082, which is greater than the conventional significance level of 0.05. Therefore, we do not have evidence to reject the null hypothesis that the interaction term is not significant. So, variety:temp is not significant
+
+```{r}
+fit_reduced = update(fit_reduced, . ~ . -variety:temp)
+Anova(fit_reduced, type=3)
+finalfit = fit_reduced
+```
+
+
+
+```{r}
+e_plot_lm_diagostics(finalfit)
+```
+
+
+
+
+

@@ -1,0 +1,98 @@
+---
+title: "Potatoes Cold Climate Adaptation"
+author: "Sina Mokhtar"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r echo = F}
+#library(lmtest)
+library(car)
+potato<-read.table("RawData/potato.txt",header=TRUE)
+potato$regime<-factor(potato$regime,label=c("R","C"))
+potato$variety<-factor(potato$variety,label=c("s1","s2"))
+potato$temp<-factor(potato$temp,label=c("-4","-8"))
+attach(potato)
+
+
+
+```
+
+
+
+## Summary:
+
+problem: This project analyzes data from an experiment on how plants adapt to cold climates, specifically focusing on the effect of different experimental factors on ion leakage as a response variable
+
+what we found:  
+
+briefly interpret the result:  
+
+
+## key graphs
+
+profile plots, hasse diagram, cube plots etc. And of course, every plot you include
+must contain a complete caption
+
+
+
+## Introduction:
+
+
+
+State the goals of the study:
+tell briefly what you plan to say in subsequent sections.
+
+
+
+## Material and Methods/ Experimental Design:
+A brief description of how the data were collected and what kind of statistical tools you want to use to address the problem you stated.
+
+This dataset is from an experiment on how plants adapt to cold climates. The investigators decided to study this problem after observing that plants that have been conditioned to cold previously appear to suffer less damage from the cold. Two species of potato were studied (species 1 and 2). Each plant was exposed to one of two acclimatization regimes (1= plant was kept in cold room; 0= plant was kept at room temperature) for several days. Later, plants were subjected to one of two cold temperatures (-4 degrees C is coded as 1; -8 degrees C is coded as 2). Two responses were measured: damage score for photosynthesis (photo), and damage score for ion leakage (leak). Some of the 80 plants originally assigned to the treatment combinations were lost during the experimen
+
+
+## Results of the Analysis:
+
+tell the reader what you found and how you found it. You may need to paste some outputs (not the raw output) from your code work to facilitate your explanation. For example, you may include a table of the results of F test in the And usually, you will include the residual plots in the appendix. Organize the section to tell the story you uncovered, not the circuitous path you may have taken to get there. Interpret your results. Report any strange features of the data.
+Be sure that you address each of the study’s goals: if the experimenter wants to know which
+treatment is best, you should attempt to answer that question and not just report the results of
+an F test saying that the treatment means are different at the 5% level. You may also mention
+strange qualities of the data and give suggestions for improving the data quality should future
+studies be done. Figures and tables may be used to tell a large part of the story, if possible
+
+```{r echo = F}
+##fit full model
+myfit<-lm(leak~variety*regime*temp,
+contrasts = c(variety=contr.sum, regime=contr.sum,temp=contr.sum))
+
+# Create a data frame with the results of the ANOVA Type III tests
+anova_results <- data.frame(
+  Term = c("(Intercept)", "variety", "regime", "temp", "variety:regime", "variety:temp", "regime:temp", "variety:regime:temp", "Residuals"),
+  Sum_Sq = c(8110.7, 1919.2, 1517.7, 785.9, 2115.8, 44.0, 16.3, 83.5, 5053.1),
+  Df = c(1, 1, 1, 1, 1, 1, 1, 1, 67),
+  F_value = c(107.5408, 25.4465, 20.1233, 10.4207, 28.0529, 0.5829, 0.2158, 1.1069, NA),
+  `Pr(>F)` = c(1.441e-15, 3.701e-06, 2.921e-05, 0.00193, 1.413e-06, 0.44787, 0.64373, 0.29654, NA)
+)
+
+# Convert the data frame into a markdown table
+knitr::kable(anova_results, align = c("l", "r", "r", "r", "r"), digits = 4)
+
+
+```
+
+
+## Conclusions: 
+You should provide interpretation of the statistical results throughout the report and rehash the main results concisely in the Conclusion, using different wording than the summary. You may also include ideas you have about future studies. Most people tend to read the summary and conclusions first, then look at the figures and
+tables. Then, if they have further interest, they read other sections of the report. Consequently, your summary and conclusion should be understandable by someone who has not read the rest of the paper, and all figures and tables should have complete captions
+
+## Appendix:
+
+Contains the technical details and plots not found in the Results section that
+you want your readers to know. Also include your R code in the Appendix, so I can see what
+you did in case you get a strange answer.
+
