@@ -6,7 +6,7 @@ output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE)
 ```
 
 
@@ -18,9 +18,6 @@ potato$regime<-factor(potato$regime,label=c("R","C"))
 potato$variety<-factor(potato$variety,label=c("s1","s2"))
 potato$temp<-factor(potato$temp,label=c("-4","-8"))
 attach(potato)
-
-
-
 ```
 
 
@@ -43,17 +40,31 @@ must contain a complete caption
 
 ## Introduction:
 
-
-
-State the goals of the study:
-tell briefly what you plan to say in subsequent sections.
+The study explores how plants adapt to cold climates by examining the effects of three experimental factors (species, regime, and temperature) on ion leakage. The investigation was prompted by the observation that plants conditioned to cold climates experience less damage when exposed to cold temperatures. Two potato species (s1; s2) were studied, and each plant was assigned to one of two acclimatization regimes levels (C = plant was kept in a cold room; R = plant was kept at room temperature) and later subjected to one of two cold temperatures levels (-4 degrees; -8 degrees). The damage scores for photosynthesis and ion leakage were measured, but ion leakage was selected as the response variable for this project. Some of the 80 plants assigned initially to the treatment combinations were lost during the experiment. The study aims to evaluate the impact of the three experimental factors on ion leakage. In subsequent sections, we will discuss the methodology used for data analysis, including the statistical models and hypothesis testing. We will then present the analysis results, including the experimental factors' effects on ion leakage. Finally, we will conclude with a discussion of the implications of the findings and suggestions for future research. 
 
 
 
 ## Material and Methods/ Experimental Design:
-A brief description of how the data were collected and what kind of statistical tools you want to use to address the problem you stated.
+To investigate a factor's effect on a variable, we used Analysis of variance (ANOVA), a collection of statistical models and their associated estimation procedures used to analyze the differences among means. For following this procedure, we started exploration by making boxplots for the levels of each factor (Figure 1). It is obvious the mean of the leak for species 1 (s1) and 2 (s2) are different, showing a difference in a mean leak by factor variety. This also holds true for factors regime and temperature.  
 
-This dataset is from an experiment on how plants adapt to cold climates. The investigators decided to study this problem after observing that plants that have been conditioned to cold previously appear to suffer less damage from the cold. Two species of potato were studied (species 1 and 2). Each plant was exposed to one of two acclimatization regimes (1= plant was kept in cold room; 0= plant was kept at room temperature) for several days. Later, plants were subjected to one of two cold temperatures (-4 degrees C is coded as 1; -8 degrees C is coded as 2). Two responses were measured: damage score for photosynthesis (photo), and damage score for ion leakage (leak). Some of the 80 plants originally assigned to the treatment combinations were lost during the experimen
+```{r echo=FALSE, fig.cap=" Interaction plot of leak for each level of variety and temperature, with different regimes represented by color and symbol.", fig.align="center"}
+interaction.plot(regime,variety:temp,leak,type='b',
+col=1:4, pch=1:4)
+```
+
+
+
+
+In the next stage, we investigated the effect of each factor depending on the other factors; The profile plot of sample means (i.e., the interaction plot) shows a clear interaction between variety and regime; the difference in the mean lengths for regime R and regime C depends on the varieties, with larger variety differences for regime R than for regime C. This indicates in addition to the main effects. It is better to include interaction effects in the model to analyze the data and inference if the main effects and interaction effects are statistically significant.
+
+The response variable, $Leak_{ijkr}$, is modeled as follows:
+
+
+$$Leak_{ijkr} = \mu + \alpha_i + \beta_{ij} + \gamma_k + ( \alpha \times \beta){ij} + (\alpha \times \gamma){ik} + (\beta \times \gamma){jk} + (\alpha \times \beta \times \gamma){ijk} + \epsilon_{ijkr}$$
+
+Here, $\mu$ is the overall mean, $\alpha_i$ is the effect of level I of variety, $\beta_{ij}$ is the effect of level j of regime, and $\gamma_k$ is the effect of level k of temperature. $(\alpha \times \beta){ij}$ represents the two-way interaction effect between variety and regime, $(\alpha \times \gamma){ik}$ represents the two-way interaction effect between variety and temperature, $(\beta \times \gamma){jk}$ represents the two-way interaction effect between regime and temperature, and $(\alpha \times \beta \times \gamma){ijk}$ represents the three-way interaction effect between variety, regime, and temperature. $\epsilon_{ijkr}$ represents the error term that cannot be controlled. The indices $i=1,2$, $j=1,2$, $k=1,2$, and $r=1,2,\ldots,n_{ijk}$ denote the levels of the variety, regime, temperature, and the number of replicates, respectively.
+
+
 
 
 ## Results of the Analysis:
@@ -86,9 +97,19 @@ knitr::kable(anova_results, align = c("l", "r", "r", "r", "r"), digits = 4)
 ```
 
 
+The table in the output provided shows the results of multiple F-tests for the full model, which test the significance of each individual predictor variable as well as their interactions.
+
+
+
 ## Conclusions: 
 You should provide interpretation of the statistical results throughout the report and rehash the main results concisely in the Conclusion, using different wording than the summary. You may also include ideas you have about future studies. Most people tend to read the summary and conclusions first, then look at the figures and
 tables. Then, if they have further interest, they read other sections of the report. Consequently, your summary and conclusion should be understandable by someone who has not read the rest of the paper, and all figures and tables should have complete captions
+
+
+
+
+
+
 
 ## Appendix:
 
