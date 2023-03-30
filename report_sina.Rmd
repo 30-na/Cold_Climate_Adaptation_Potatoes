@@ -44,28 +44,55 @@ The study explores how plants adapt to cold climates by examining the effects of
 
 
 
-## Material and Methods/ Experimental Design:
-To investigate a factor's effect on a variable, we used Analysis of variance (ANOVA), a collection of statistical models and their associated estimation procedures used to analyze the differences among means. For following this procedure, we started exploration by making boxplots for the levels of each factor (Figure 1). It is obvious the mean of the leak for species 1 (s1) and 2 (s2) are different, showing a difference in a mean leak by factor variety. This also holds true for factors regime and temperature.  
+## Exploration
+For investigating the effect of a factor on a variable we can use Analysis of variance (ANOVA) which is a collection of statistical models and their associated estimation procedures used to analyze the differences among means. For following this procedure, we started exploration by making boxplots for the levels of each factor (Fig.1) 
 
-```{r echo=FALSE, fig.cap=" Interaction plot of leak for each level of variety and temperature, with different regimes represented by color and symbol.", fig.align="center"}
-interaction.plot(regime,variety:temp,leak,type='b',
-col=1:4, pch=1:4)
+```{r  echo=FALSE, fig.cap="Boxplots of the mean damage score for leaksynthesis by variety, regime, and temperature in potato plants.", fig.align="center"}
+#boxplot
+par(mfrow=c(1,3))
+boxplot(leak ~ variety,
+data = potato,
+xlab = "Variety",
+ylab = "Mean damage score for leaksynthesis")
+boxplot(leak ~ regime,
+data = potato,
+xlab = "Regime",
+ylab = "Mean damage score for leaksynthesis")
+boxplot(leak ~ temp,
+data = potato,
+xlab = "Temp",
+ylab = "Mean damage score for leaksynthesis")
+```
+
+It is obvious the mean of leak for species 1 (s1) and 2 (s2) are different, showing difference in mean leak by factor variety. This seems also hold true for factors regime and temperature. In the next stage we would like to investigate if the effect of each factor depends on the other factors; The profile plot of sample means (i.e., the interaction plot) (Fig.2) shows a clear interaction between variety and regime.
+
+```{r echo=FALSE, fig.cap="Interaction plot of the mean damage score for leaksynthesis in potato plants, showing the effect of variety and regime on leak values.", fig.align="center"}
+interaction.plot(regime,variety,leak,type='b',
+col=1:2, pch=1:2,main="regime*variety")
+```
+
+the difference in the mean lengths for regime R and regime C depends on the varieties, with larger variety differences for regime R than for the regime C. This indicates in addition to main effects it is better include interaction effects in the model to analyze the data and inference if the main effects and interaction effects are statistically significant. 
+
+
+## Full model
+
+```{r echo = F}
+myfit<-lm(leak~variety*regime*temp,
+contrasts = c(variety=contr.sum, regime=contr.sum,temp=contr.sum))
 ```
 
 
+The full model that we proceeded to fit is:
 
 
-In the next stage, we investigated the effect of each factor depending on the other factors; The profile plot of sample means (i.e., the interaction plot) shows a clear interaction between variety and regime; the difference in the mean lengths for regime R and regime C depends on the varieties, with larger variety differences for regime R than for regime C. This indicates in addition to the main effects. It is better to include interaction effects in the model to analyze the data and inference if the main effects and interaction effects are statistically significant.
-
-The response variable, $Leak_{ijkr}$, is modeled as follows:
-
-
-$$Leak_{ijkr} = \mu + \alpha_i + \beta_{ij} + \gamma_k + ( \alpha \times \beta){ij} + (\alpha \times \gamma){ik} + (\beta \times \gamma){jk} + (\alpha \times \beta \times \gamma){ijk} + \epsilon_{ijkr}$$
+$$Leak_{ijkr} = \mu + \alpha_i + \beta_{ij} + \gamma_k + ( \alpha  \beta)_{ij} + (\alpha  \gamma)_{ik} + (\beta  \gamma)_{jk} + (\alpha  \beta  \gamma)_{ijk} + \epsilon_{ijkr}$$
 
 Here, $\mu$ is the overall mean, $\alpha_i$ is the effect of level I of variety, $\beta_{ij}$ is the effect of level j of regime, and $\gamma_k$ is the effect of level k of temperature. $(\alpha \times \beta){ij}$ represents the two-way interaction effect between variety and regime, $(\alpha \times \gamma){ik}$ represents the two-way interaction effect between variety and temperature, $(\beta \times \gamma){jk}$ represents the two-way interaction effect between regime and temperature, and $(\alpha \times \beta \times \gamma){ijk}$ represents the three-way interaction effect between variety, regime, and temperature. $\epsilon_{ijkr}$ represents the error term that cannot be controlled. The indices $i=1,2$, $j=1,2$, $k=1,2$, and $r=1,2,\ldots,n_{ijk}$ denote the levels of the variety, regime, temperature, and the number of replicates, respectively.
 
 
+### Model Assumptions
 
+We checked the assumptions for our initial model. the normality assumption was not met as seen from the normal QQ plot (Fig3), and the Shapiro-Wilks Test ($p = 0.03256$). Also, from the plot of the residuals and the fitted values (Fig.4), and the Breusch Pagan Test ($p = 2.307\times10^{-6}$), there is evidence to conclude that the constant variance assumption was not met. We do not know enough about how the data was collected to make a definitive statement about independence, and do not see any reason to question the assumption as it pertains to this data.
 
 ## Results of the Analysis:
 
@@ -97,6 +124,9 @@ knitr::kable(anova_results, align = c("l", "r", "r", "r", "r"), digits = 4)
 ```
 
 
+
+
+
 The table in the output provided shows the results of multiple F-tests for the full model, which test the significance of each individual predictor variable as well as their interactions.
 
 
@@ -116,4 +146,11 @@ tables. Then, if they have further interest, they read other sections of the rep
 Contains the technical details and plots not found in the Results section that
 you want your readers to know. Also include your R code in the Appendix, so I can see what
 you did in case you get a strange answer.
+
+
+```{r fig3, fig.cap="Normal QQ plot of residuals"}
+
+qqPlot(myfit$residuals, las = 1, main="QQ Plot")
+
+```
 
